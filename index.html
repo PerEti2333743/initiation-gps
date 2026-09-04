@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Localisation</title>
+
+<style>
+
+body {
+  font-family: Arial, sans-serif;
+  background: #111827;
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+}
+
+h1 {
+  font-size: 32px;
+}
+
+p {
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+button {
+  width: 100%;
+  padding: 20px;
+  font-size: 22px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+#statut {
+  margin-top: 25px;
+  font-size: 20px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<h1>📍 LOCALISATION</h1>
+
+<p>
+Pendant l'initiation, votre localisation sera
+utilisée pour permettre aux responsables
+de suivre votre position.
+</p>
+
+<button onclick="demarrerLocalisation()">
+AUTORISER MA LOCALISATION
+</button>
+
+<div id="statut">
+Localisation inactive
+</div>
+
+</div>
+
+
+<script>
+
+
+const SCRIPT_URL =
+"https://script.google.com/macros/s/XXXXXXXX/exec";
+
+
+/*
+ * Identifiant unique du téléphone
+ */
+
+let participantID =
+localStorage.getItem("participantID");
+
+
+if (!participantID) {
+
+  participantID =
+    "P-" +
+    Math.random()
+      .toString(36)
+      .substring(2, 10);
+
+  localStorage.setItem(
+    "participantID",
+    participantID
+  );
+
+}
+
+
+/*
+ * Démarrer le GPS
+ */
+
+function demarrerLocalisation() {
+
+
+  if (!navigator.geolocation) {
+
+    document.getElementById("statut")
+      .innerHTML =
+      "❌ La géolocalisation n'est pas disponible.";
+
+    return;
+
+  }
+
+
+  document.getElementById("statut")
+    .innerHTML =
+    "📍 Demande de localisation...";
+
+
+  navigator.geolocation.watchPosition(
+
+    position => {
+
+      const latitude =
+        position.coords.latitude;
+
+      const longitude =
+        position.coords.longitude;
+
+      const precision =
+        position.coords.accuracy;
+
+
+      document.getElementById("statut")
+        .innerHTML =
+        "🟢 LOCALISATION ACTIVE";
+
+
+      envoyerPosition(
+        latitude,
+        longitude,
+        precision
+      );
+
+    },
+
+    erreur => {
+
+      document.getElementById("statut")
+        .innerHTML =
+        "❌ Impossible d'obtenir la localisation.";
+
+    },
+
+    {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 15000
+    }
+
+  );
+
+}
+
+
+/*
+ * Envoyer la position à Apps Script
+ */
+
+function envoyerPosition(
+  latitude,
+  longitude,
+  precision
+) {
+
+
+  const url =
+    SCRIPT_URL +
+    "?action=position" +
+    "&id=" +
+    encodeURIComponent(participantID) +
+    "&lat=" +
+    encodeURIComponent(latitude) +
+    "&lng=" +
+    encodeURIComponent(longitude) +
+    "&accuracy=" +
+    encodeURIComponent(precision);
+
+
+  fetch(url)
+    .catch(() => {});
+
+}
+
+
+</script>
+
+</body>
+
+</html>
