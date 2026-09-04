@@ -69,6 +69,10 @@
       color: #f87171;
     }
 
+    .orange {
+      color: #fbbf24;
+    }
+
     .aide {
       margin-top: 40px;
       font-size: 16px;
@@ -93,7 +97,7 @@
   </p>
 
   <p>
-    Votre navigateur va maintenant vous demander
+    Votre navigateur va vous demander
     l'autorisation d'utiliser votre localisation.
   </p>
 
@@ -108,7 +112,7 @@
 
   <div id="statut">
 
-    Localisation inactive
+    Préparation de la localisation...
 
   </div>
 
@@ -134,7 +138,7 @@ const SCRIPT_URL =
 
 
 /* =====================================================
-   IDENTIFIANT UNIQUE DU TÉLÉPHONE
+   IDENTIFIANT UNIQUE DU PARTICIPANT
    ===================================================== */
 
 let participantID =
@@ -158,10 +162,21 @@ if (!participantID) {
 
 
 /* =====================================================
+   VARIABLE DE SUIVI
+   ===================================================== */
+
+let surveillanceActive = false;
+
+
+/* =====================================================
    DÉMARRER LA LOCALISATION
    ===================================================== */
 
 function demarrerLocalisation() {
+
+  if (surveillanceActive) {
+    return;
+  }
 
 
   const bouton =
@@ -170,6 +185,8 @@ function demarrerLocalisation() {
   const statut =
     document.getElementById("statut");
 
+
+  /* Vérification de la géolocalisation */
 
   if (!navigator.geolocation) {
 
@@ -183,12 +200,35 @@ function demarrerLocalisation() {
   }
 
 
+  /* Vérification HTTPS */
+
+  if (!window.isSecureContext) {
+
+    statut.innerHTML =
+      "❌ La localisation nécessite une connexion sécurisée HTTPS.";
+
+    statut.className = "rouge";
+
+    return;
+
+  }
+
+
+  surveillanceActive = true;
+
   bouton.classList.add("desactive");
 
 
   statut.innerHTML =
     "📍 Demande d'autorisation...";
 
+  statut.className =
+    "orange";
+
+
+  /* =====================================================
+     SURVEILLANCE DE LA POSITION
+     ===================================================== */
 
   navigator.geolocation.watchPosition(
 
@@ -208,7 +248,6 @@ function demarrerLocalisation() {
         "🟢 LOCALISATION ACTIVE<br><br>" +
         "Votre position est transmise aux responsables.";
 
-
       statut.className =
         "vert";
 
@@ -224,6 +263,8 @@ function demarrerLocalisation() {
 
     function(erreur) {
 
+      surveillanceActive = false;
+
       bouton.classList.remove("desactive");
 
 
@@ -234,7 +275,8 @@ function demarrerLocalisation() {
       if (erreur.code === 1) {
 
         statut.innerHTML =
-          "❌ Vous avez refusé l'accès à la localisation.";
+          "❌ Vous avez refusé l'accès à la localisation.<br><br>" +
+          "Autorisez la localisation dans les paramètres de votre navigateur.";
 
       }
 
@@ -278,7 +320,7 @@ function demarrerLocalisation() {
 
 
 /* =====================================================
-   ENVOYER LA POSITION À APPS SCRIPT
+   ENVOYER LA POSITION À GOOGLE APPS SCRIPT
    ===================================================== */
 
 function envoyerPosition(
@@ -286,7 +328,6 @@ function envoyerPosition(
   longitude,
   precision
 ) {
-
 
   const url =
 
@@ -316,8 +357,11 @@ function envoyerPosition(
 
 
   fetch(url, {
+
     method: "GET",
+
     mode: "no-cors"
+
   })
 
   .catch(function() {
@@ -329,6 +373,21 @@ function envoyerPosition(
   });
 
 }
+
+
+/* =====================================================
+   LANCEMENT AUTOMATIQUE
+   ===================================================== */
+
+window.addEventListener("load", function() {
+
+  setTimeout(function() {
+
+    demarrerLocalisation();
+
+  }, 1000);
+
+});
 
 
 </script>
