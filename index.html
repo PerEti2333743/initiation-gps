@@ -3,51 +3,79 @@
 
 <head>
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Localisation</title>
+  <title>Localisation - Initiation</title>
 
-<style>
+  <style>
 
-body {
-  font-family: Arial, sans-serif;
-  background: #111827;
-  color: white;
-  text-align: center;
-  padding: 40px 20px;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 40px 20px;
+    }
 
-.container {
-  max-width: 500px;
-  margin: auto;
-}
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
 
-h1 {
-  font-size: 32px;
-}
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
 
-p {
-  font-size: 20px;
-  line-height: 1.5;
-}
+    p {
+      font-size: 20px;
+      line-height: 1.5;
+    }
 
-button {
-  width: 100%;
-  padding: 20px;
-  font-size: 22px;
-  font-weight: bold;
-  border: none;
-  border-radius: 12px;
-  margin-top: 20px;
-}
+    button {
+      width: 100%;
+      padding: 20px;
+      font-size: 21px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
 
-#statut {
-  margin-top: 25px;
-  font-size: 20px;
-}
+    .principal {
+      background: white;
+      color: #111827;
+    }
 
-</style>
+    .desactive {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    #statut {
+      margin-top: 30px;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.5;
+    }
+
+    .vert {
+      color: #4ade80;
+    }
+
+    .rouge {
+      color: #f87171;
+    }
+
+    .aide {
+      margin-top: 40px;
+      font-size: 16px;
+      opacity: 0.7;
+    }
+
+  </style>
 
 </head>
 
@@ -56,21 +84,40 @@ button {
 
 <div class="container">
 
-<h1>📍 LOCALISATION</h1>
+  <h1>📍 LOCALISATION</h1>
 
-<p>
-Pendant l'initiation, votre localisation sera
-utilisée pour permettre aux responsables
-de suivre votre position.
-</p>
+  <p>
+    Pendant l'initiation, votre localisation
+    sera utilisée pour permettre aux responsables
+    de suivre votre position pendant l'activité.
+  </p>
 
-<button onclick="demarrerLocalisation()">
-AUTORISER MA LOCALISATION
-</button>
+  <p>
+    Votre navigateur va maintenant vous demander
+    l'autorisation d'utiliser votre localisation.
+  </p>
 
-<div id="statut">
-Localisation inactive
-</div>
+  <button
+    id="bouton"
+    class="principal"
+    onclick="demarrerLocalisation()">
+
+    📍 AUTORISER MA LOCALISATION
+
+  </button>
+
+  <div id="statut">
+
+    Localisation inactive
+
+  </div>
+
+  <div class="aide">
+
+    Vous devez autoriser la localisation
+    pour participer à l'activité.
+
+  </div>
 
 </div>
 
@@ -78,16 +125,20 @@ Localisation inactive
 <script>
 
 
+/* =====================================================
+   URL DE TON APPS SCRIPT
+   ===================================================== */
+
 const SCRIPT_URL =
-"https://script.google.com/macros/s/XXXXXXXX/exec";
+  "https://script.google.com/macros/s/AKfycbxhxkjAmYGKQh36_ynDZquDt3ModJqN6vddbgWjNRkxDMz36ie78juqKgZ_IVkdiK9H/exec";
 
 
-/*
- * Identifiant unique du téléphone
- */
+/* =====================================================
+   IDENTIFIANT UNIQUE DU TÉLÉPHONE
+   ===================================================== */
 
 let participantID =
-localStorage.getItem("participantID");
+  localStorage.getItem("participantID");
 
 
 if (!participantID) {
@@ -106,32 +157,42 @@ if (!participantID) {
 }
 
 
-/*
- * Démarrer le GPS
- */
+/* =====================================================
+   DÉMARRER LA LOCALISATION
+   ===================================================== */
 
 function demarrerLocalisation() {
 
 
+  const bouton =
+    document.getElementById("bouton");
+
+  const statut =
+    document.getElementById("statut");
+
+
   if (!navigator.geolocation) {
 
-    document.getElementById("statut")
-      .innerHTML =
-      "❌ La géolocalisation n'est pas disponible.";
+    statut.innerHTML =
+      "❌ La géolocalisation n'est pas disponible sur cet appareil.";
+
+    statut.className = "rouge";
 
     return;
 
   }
 
 
-  document.getElementById("statut")
-    .innerHTML =
-    "📍 Demande de localisation...";
+  bouton.classList.add("desactive");
+
+
+  statut.innerHTML =
+    "📍 Demande d'autorisation...";
 
 
   navigator.geolocation.watchPosition(
 
-    position => {
+    function(position) {
 
       const latitude =
         position.coords.latitude;
@@ -143,9 +204,13 @@ function demarrerLocalisation() {
         position.coords.accuracy;
 
 
-      document.getElementById("statut")
-        .innerHTML =
-        "🟢 LOCALISATION ACTIVE";
+      statut.innerHTML =
+        "🟢 LOCALISATION ACTIVE<br><br>" +
+        "Votre position est transmise aux responsables.";
+
+
+      statut.className =
+        "vert";
 
 
       envoyerPosition(
@@ -156,18 +221,55 @@ function demarrerLocalisation() {
 
     },
 
-    erreur => {
 
-      document.getElementById("statut")
-        .innerHTML =
-        "❌ Impossible d'obtenir la localisation.";
+    function(erreur) {
+
+      bouton.classList.remove("desactive");
+
+
+      statut.className =
+        "rouge";
+
+
+      if (erreur.code === 1) {
+
+        statut.innerHTML =
+          "❌ Vous avez refusé l'accès à la localisation.";
+
+      }
+
+      else if (erreur.code === 2) {
+
+        statut.innerHTML =
+          "❌ Position impossible à déterminer.";
+
+      }
+
+      else if (erreur.code === 3) {
+
+        statut.innerHTML =
+          "❌ Délai dépassé pour obtenir la position.";
+
+      }
+
+      else {
+
+        statut.innerHTML =
+          "❌ Une erreur de localisation est survenue.";
+
+      }
 
     },
 
+
     {
+
       enableHighAccuracy: true,
+
       maximumAge: 5000,
+
       timeout: 15000
+
     }
 
   );
@@ -175,9 +277,9 @@ function demarrerLocalisation() {
 }
 
 
-/*
- * Envoyer la position à Apps Script
- */
+/* =====================================================
+   ENVOYER LA POSITION À APPS SCRIPT
+   ===================================================== */
 
 function envoyerPosition(
   latitude,
@@ -187,20 +289,44 @@ function envoyerPosition(
 
 
   const url =
+
     SCRIPT_URL +
+
     "?action=position" +
+
     "&id=" +
-    encodeURIComponent(participantID) +
+    encodeURIComponent(
+      participantID
+    ) +
+
     "&lat=" +
-    encodeURIComponent(latitude) +
+    encodeURIComponent(
+      latitude
+    ) +
+
     "&lng=" +
-    encodeURIComponent(longitude) +
+    encodeURIComponent(
+      longitude
+    ) +
+
     "&accuracy=" +
-    encodeURIComponent(precision);
+    encodeURIComponent(
+      precision
+    );
 
 
-  fetch(url)
-    .catch(() => {});
+  fetch(url, {
+    method: "GET",
+    mode: "no-cors"
+  })
+
+  .catch(function() {
+
+    console.log(
+      "Erreur lors de l'envoi de la position."
+    );
+
+  });
 
 }
 
